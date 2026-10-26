@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант: {{ title }} </h2>
+<p>Порядок загрузки исходных файлов геометрии объектов (опционально):</p>
+	<ul>
+	  <li>Таблица пространственных данных остановочных пунктов</li>
+	  <li>Таблица пространственных данных кластеров ОП</li>
+	  <li>Таблица пространственных данных транспортных районов</li>
+	</ul>
+	{% if load_done == 0 %}
+	<div><a href="{{ url_for('project_calc', proj_name=title) }}" class="tu_bottom">Пропустить</a></div>
+	{% endif %}
+{% for msg in get_flashed_messages() %}
+<div><div class="flash">{{ msg }}</div></div>
+{% endfor %}
+{% if load_done == 0 %}
+	<div class="form_t1">
+		<form method="post" enctype="multipart/form-data">
+	    {{ form.hidden_tag() }}
+	    <p><label>Выберите файл</label>
+	    {{ form.file }}
+		{{ form.submit() }}</p>
+		</form>
+	</div>
+{% endif %}
+	{% if load_done == 1 %}
+	<div><a href="{{ url_for('project_calc', proj_name=title) }}" class="mainlink">Продолжить</a></div>
+	{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='los', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block title %}Загрузка данных – {{ title }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проект {{ title }}: загрузка исходных файлов</h2>
+
+<ol>
+  {% for prefix, label, columns in files %}
+  <li>
+    {{ label }}
+    {% if loop.index0 < loaded_count %} - <i>загружен</i>{% endif %}
+  </li>
+  {% endfor %}
+  {% for prefix, item in optional_files.items() %}
+  <li>
+    {{ item[0] }}
+    {% if optional_loaded[prefix] %} - <i>загружен</i>{% endif %}
+  </li>
+  {% endfor %}
+</ol>
+
+<div class="form_t1">
+  <form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {% if required_loaded %}
+    <p>{{ form.optional_type.label }}: {{ form.optional_type }}</p>
+    {% else %}
+    <p><strong>Текущий файл:</strong> {{ current_file }}</p>
+    {% endif %}
+    <p>{{ form.file }}
+    {% for error in form.file.errors %}
+    <div class="flash">{{ error }}</div>
+    {% endfor %}
+    {{ form.submit() }}</p>
+  </form>
+</div>
+
+{% if required_loaded %}
+<div style="margin-top:20px;">
+  <a href="{{ url_for('demand.calculate', proj_name=title) }}"
+     class="mainlink">Продолжить</a>
+</div>
+{% endif %}
+
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+
+<div style="display:flex; justify-content:flex-end;">
+  <a href="{{ url_for('del_proj', proj_type='demand', proj_name=title) }}"
+     class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'layout.html' %}
+
+{% block title %}Расчёт спроса – {{ title }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проект {{ title }}: параметры расчета</h2>
+
+<div><a href="{{ url_for('demand.upload', proj_name=title) }}" class="tu_bottom">Вернуться к загрузке</a></div>
+
+<div class="form_t1">
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <table>
+      <tr>
+        <td style="text-align:left;">Период расчета:</td>
+        <td style="text-align:left;">{{ form.calculation_period }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Временной профиль спроса:</td>
+        <td style="text-align:left;">{{ form.demand_profile_mode }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Базовая доля поездок на ОТ между районами:</td>
+        <td style="text-align:left;">{{ form.pt_share }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Доля поездок на ОТ внутри района:</td>
+        <td style="text-align:left;">{{ form.pt_share_intrazonal }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Способ определения и калибровки спроса:</td>
+        <td style="text-align:left;">{{ form.calibration_mode }}</td>
+      </tr>
+      <tr id="total_boardings_row">
+        <td style="text-align:left;">
+          <span id="total_boardings_label"></span>:
+        </td>
+        <td style="text-align:left;">{{ form.total_boardings_period }}</td>
+      </tr>
+      <tr id="transfer_factor_row">
+        <td style="text-align:left;">Коэффициент пересадочности:</td>
+        <td style="text-align:left;">{{ form.transfer_factor }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Радиус буфера пешей доступности остановки, км:</td>
+        <td style="text-align:left;">{{ form.access_radius_km }}</td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Минимальная доля пересечения буфера доступности остановки с районом:</td>
+        <td style="text-align:left;">{{ form.min_overlap_share }}</td>
+      </tr>
+    </table>
+    <p>{{ form.submit() }}</p>
+  </form>
+</div>
+
+<p id="run_info">
+  <i>LOS должен соответствовать выбранному периоду расчета.</i>
+</p>
+
+{% for field in [
+    form.pt_share,
+    form.pt_share_intrazonal,
+    form.calculation_period,
+    form.demand_profile_mode,
+    form.calibration_mode,
+    form.total_boardings_period,
+    form.transfer_factor,
+    form.access_radius_km,
+    form.min_overlap_share
+] %}
+  {% for error in field.errors %}
+  <div class="flash">{{ field.label.text }}: {{ error }}</div>
+  {% endfor %}
+{% endfor %}
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+
+<script>
+const button = document.getElementById("calc_butt");
+const calibrationMode = document.getElementById("calibration_mode");
+const calculationPeriod = document.getElementById("calculation_period");
+const profileMode = document.getElementById("demand_profile_mode");
+const totalBoardingsRow = document.getElementById("total_boardings_row");
+const transferFactorRow = document.getElementById("transfer_factor_row");
+const totalBoardingsLabel = document.getElementById("total_boardings_label");
+
+function updateVolumeMode() {
+  const enabled = calibrationMode.value !== "pt_share";
+  totalBoardingsRow.hidden = !enabled;
+  transferFactorRow.hidden = !enabled;
+  totalBoardingsLabel.textContent = calibrationMode.value === "route_boardings"
+    ? "Суммарное количество поездок по всем маршрутам за расчетный период"
+    : "Количество поездок за расчетный период";
+}
+
+function updatePeriodMode() {
+  const carryOption = profileMode.querySelector(
+    'option[value="mobile_carry"]'
+  );
+  if (calculationPeriod.value !== "day") {
+    profileMode.value = "mobile_only";
+  }
+  if (carryOption) {
+    carryOption.disabled = calculationPeriod.value !== "day";
+  }
+}
+
+calibrationMode.addEventListener("change", updateVolumeMode);
+calculationPeriod.addEventListener("change", updatePeriodMode);
+profileMode.addEventListener("change", updatePeriodMode);
+updateVolumeMode();
+updatePeriodMode();
+
+button.addEventListener("click", function () {
+  setTimeout(function () { button.disabled = true; }, 300);
+  document.getElementById("run_info").innerHTML =
+    "<i>Выполняется восстановление матрицы спроса.</i>";
+});
+</script>
+
+<div style="display:flex; justify-content:flex-end;">
+  <a href="{{ url_for('del_proj', proj_type='demand', proj_name=title) }}"
+     class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

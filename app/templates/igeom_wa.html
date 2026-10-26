@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        {{ iframe|safe }}
+        <style type='text/css'>
+        .maplegend .legend-title {
+        font-family:  Calibri;
+        text-align: center;
+        margin-bottom: 5px;
+        }
+        .maplegend .legend-scale ul {
+        margin: 0;
+        margin-bottom: 5px;
+        padding: 0;
+        float: left;
+        list-style: none;
+        }
+        .maplegend .legend-scale ul li {
+        font-family:  Calibri;
+        font-size: 12px;
+        list-style: none;
+        margin-left: 0;
+        line-height: 18px;
+        margin-bottom: 2px;
+        }
+        .maplegend ul.legend-labels li span {
+        display: block;
+        float: left;
+        height: 14px;
+        width: 25px;
+        margin-right: 5px;
+        margin-left: 0;
+        border: 1px solid #999;
+        }
+        .maplegend a {
+        color: #777;
+        }
+        </style>
+        <div id='maplegend' class='maplegend' 
+        style='position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
+         border-radius:5px; padding: 10px; font-size:14px; left: 10px; top: 465px;'>
+        <div class='legend-title'>Условные обозначения</div>
+        <div class='legend-scale'>
+        <ul class='legend-labels'>
+        <li><span style='background:#4dff4d;opacity:0.5;'></span> Зона пешей доступности</li>
+        <li><span style='background:#737373;opacity:0.5;'></span> Территории неуд. пеш. доступности</li>
+        </ul>
+        </div>
+        </div>
+    </body>
+</html>

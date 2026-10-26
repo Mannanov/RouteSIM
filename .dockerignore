@@ -1,0 +1,17 @@
+.git
+.agents
+.codex
+venv
+.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+*.pyc
+*.pyo
+*.pyd
+app/cache
+app/log
+app/data
+app/static/userdata
+app/*.db
+app/*.db-*

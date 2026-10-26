@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проекты прогноза спроса (тестовая версия)</h2>
+
+{% if rows %}
+<div id="projects_table">
+  <table class="table_t1" style="width:100%;">
+    <tr><th>Код проекта</th><th>Описание проекта</th><th>Дата создания</th><th>Статус проекта</th></tr>
+    {% for row in rows %}
+    {% if row.status_prj == 3 and row.run_id %}
+      {% set project_endpoint = 'forecast.result' %}
+    {% elif row.status_src == 4 %}
+      {% set project_endpoint = 'forecast.calculate' %}
+    {% else %}
+      {% set project_endpoint = 'forecast.upload' %}
+    {% endif %}
+    <tr>
+      <td><a href="{{ url_for(project_endpoint, proj_name=row.proj_name) }}" class="tuplink">{{ row.proj_name }}</a></td>
+      <td>{{ row.proj_descr }}</td>
+      <td>{{ row.date_crt }}</td>
+      <td>{{ statuses[row.status_prj] }}{% if row.outcome == 'PARTIAL' %} (частичный результат){% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="form_t1">
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <p style="font-weight:bold;">Создать новый проект</p>
+    {{ form.proj_name.label }}: {{ form.proj_name }}
+    <label for="{{ form.proj_descr.id }}">Краткое описание:</label> {{ form.proj_descr }}
+    {{ form.submit() }}
+    {% for field in form %}
+      {% for error in field.errors %}
+      <p class="flash" role="alert">{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+  </form>
+</div>
+
+{% for message in get_flashed_messages() %}
+<div><div class="flash" role="alert">{{ message }}</div></div>
+{% endfor %}
+{% endblock %}

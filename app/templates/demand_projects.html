@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проекты восстановления спроса (тестовая версия)</h2>
+
+{% if rows %}
+<div id="projects_table">
+  <table class="table_t1" style="width:100%;">
+    <tr>
+      {% for column in headers %}
+      <th>{{ column }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr>
+      {% for column in row %}
+        {% if loop.index == 1 %}
+          <td>
+            <a href="{{ url_for('demand.upload', proj_name=column) }}"
+               class="mainlink">{{ column }}</a>
+          </td>
+        {% else %}
+          <td>{{ column }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="form_t1">
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <p style="font-weight:bold;">Создать новый проект</p>
+    Код проекта: {{ form.proj_name }}
+    Краткое описание: {{ form.proj_descr }}
+    {{ form.submit() }}
+  </form>
+</div>
+
+{% for message in get_flashed_messages() %}
+<div><div class="flash">{{ message }}</div></div>
+{% endfor %}
+{% endblock %}

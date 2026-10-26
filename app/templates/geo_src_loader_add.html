@@ -1,0 +1,62 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<style>
+#field_description {
+  width: 550px;
+}
+.inp_fields {
+  padding-top: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ title }}: загрузка данных</h2>
+<div><strong>Загрузка дополнительных слоёв:</strong><br>
+	<div class="form_t1" style="margin-top: 10px;">
+		<form method="post" enctype="multipart/form-data">
+	    {{ form_additional.hidden_tag() }}
+	    <div>Создать пустой слой {{ form_additional.new_layer }}</div>
+		    <div class="inp_fields"><strong>{{ form_additional.layer_name.label }}:</strong><br> 
+		    {{ form_additional.layer_name }}</div>
+		    <div class="inp_fields">{{ form_additional.geom_type_field.label }}:<br> 
+		    {{ form_additional.geom_type_field }}</div>
+		    <div class="inp_fields">{{ form_additional.field_description.label }}:<br> 
+		    {{ form_additional.field_description }}</div>
+		    <div style="margin-top: 20px;"><p><label>или загрузить слой из файла</label></p>
+			    {{ form_additional.file }} {{ form_additional.submit() }}
+				</div>
+		</form>
+	</div>
+</div>
+{% for msg in get_flashed_messages() %}
+<div><div class="flash">{{ msg }}</div></div>
+{% endfor %}
+<div style="margin-top: 10px;"><a href="{{ url_for('geo_project_calc', proj_name=title) }}" class="mainlink">Завершить загрузку</a></div>
+<div style="margin-top: 10px;">
+<i style="line-height: 1.8">Загружаемые файлы в текстовом формате "csv", кодировка UTF-8, проекция EPSG:4326</i><br>
+<i style="line-height: 1.8">Название слоя вносится на английской и русской раскладке с разделителем ",". Например: "new_routes, нов_маршруты", суммарно не более 35 символов.</i><br>
+<i style="line-height: 1.8">Тип геометрии и перечень полей описываются только для новых слоев. Описание полей в формате: "поле1", "поле2", ... "полеN". Наименования полей должно быть без пробелов, не более 300 символов.</i>
+</div>
+<script>
+const nl_div = document.getElementById("nl");
+const el_div = document.getElementById("el");
+const new_layer = document.getElementById("new_layer");
+
+let nl_state = 0;
+new_layer.onclick = () => {
+	if (nl_state === 0) {
+		nl_div.style.display = "block";
+		el_div.style.display = "none";
+		nl_state = 1;
+	} else {
+		nl_div.style.display = "none";
+		el_div.style.display = "block";
+		nl_state = 0;
+	}
+}
+</script>
+{% endblock %}

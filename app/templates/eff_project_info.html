@@ -1,0 +1,163 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<style>
+#adata_1 {
+  display: none;
+  width: 100%;
+  margin-top: 5px;
+/*  background-color: #e6e6e6;*/
+}
+#adata_2 {
+  display: none;
+  width: 100%;
+  margin-top: 5px;
+}
+#adata_3 {
+  display: none;
+  width: 100%;
+  margin-top: 5px;
+}
+#adata_4 {
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+}
+#adata_5 {
+  display: none;
+  margin-top: 5px;
+}
+#adata_6 {
+  display: none;
+  width: 100%;
+  margin-top: 5px;
+}
+table {
+  width: 100%;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<script>
+function show_more(el) {
+  let x = document.getElementById(el);
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+</script>
+
+<h2>Проектный вариант {{ title }}: показатели эффективности транспортной работы</h2>
+<div>
+  <p><button onclick="show_more('adata_1')" class="tu_bottom">Матрица</button> межмаршрутного уровня дублирования (% дублирования)</p>
+<div id="adata_1" class="view_big_table">
+  <table style="padding-top: 5px; margin-bottom: 20px;">
+<tr>
+  <td style="text-align:left">Табличные данные об уровне дублирования в форме матрицы:</td>
+  <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='matrix_doubl', proj_name=title) }}" class="tuplink">cкачать</a></td>
+</tr>
+<tr>
+  <td style="text-align:left">Табличные данные об уровне дублирования в столбчатом виде:</td>
+  <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='column_doubl', proj_name=title) }}" class="tuplink">cкачать</a></td>
+</tr>
+<tr><td><hr></td><td><hr></td></tr>
+</table>
+  {{ table_doubl | safe }}
+</div>
+</div>
+{% if show_flow %}
+  <div><p><button onclick="show_more('adata_6')" class="tu_bottom">Индекс</button>неравномерности движения</p>
+  <div id="adata_6" class="view_big_table">
+    <p style="text-align:left">
+      Индекс рассчитывается как отношение разности потоков прямого и обратного направлений
+      к их сумме. Значение 0 означает равенство потоков, положительное значение — преобладание прямого направления (зеленый градиент), отрицательное — преобладание обратного (синий градиент). Диапазон значений: от −1 до +1.
+    </p>
+    <table style="padding-top: 5px;">
+      <tr>
+        <td style="text-align:left">Табличные данные о коэффициентах неравномерности движения:</td>
+        <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='routes_irregularity', proj_name=title) }}" class="tuplink">cкачать</a></td>
+      </tr>
+      <tr><td><hr></td><td><hr></td></tr>
+    </table>
+    {{ table_irregularity | safe }}
+  </div>
+  </div>
+  <div><p><button onclick="show_more('adata_2')" class="tu_bottom">Коэффициент</button> сменности (пассажирооборот/провозная возможность)</p>
+  <div id="adata_2" class="view_big_table">
+    <table style="padding-top: 5px;">
+      <tr>
+        <td style="text-align:left">Табличные данные о коэффициенте сменности:</td>
+        <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='routes_renew', proj_name=title) }}" class="tuplink">cкачать</a></td>
+      </tr>
+      <tr><td><hr></td><td><hr></td></tr>
+  </table>
+    {{ table_renew | safe }}
+  </div>
+  </div>
+  <div><p><button onclick="show_more('adata_3')" class="tu_bottom">Динамическая</button> загрузка маршрутов (поток * средняя дальность поездки / (протяженность маршрута * провозная возможность))</p>
+  <div id="adata_3" class="view_big_table">
+    <table style="padding-top: 5px;">
+      <tr>
+        <td style="text-align:left">Табличные данные о динамической загрузке маршрутов:</td>
+        <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='routes_dynamic', proj_name=title) }}" class="tuplink">cкачать</a></td>
+      </tr>
+      <tr><td><hr></td><td><hr></td></tr>
+  </table>
+    {{ table_dynamic | safe }}
+  </div>
+  </div>
+  <div>
+  <table>
+  <tr>
+    <td style="text-align:left"><strong>Загрузка всех маршрутов на межостановочных перегонах (по всем периодам времени)</strong></td>
+    <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='route_load', proj_name=title) }}" class="tuplink">cкачать</a></td>
+  </tr>
+  </table>
+  </div>
+  <div style="overflow: auto;">
+    <h3>Средние протяженности поездок на маршруте (км):</h3>
+      {{ mean_string | safe }}
+  </div>
+  <div class="form_t1" id="route_info">
+    <h3>Просмотр корреспонденций и загрузки на отдельных маршрутах:</h3>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <table>
+        <tr><td style="text-align: left">Маршрут и направление:</td><td>{{ form.rnd_variant_field }}</td></tr>
+        <tr><td style="text-align: left">Период времени:</td><td>{{ form.rnd_period_field }}</td></tr>
+        </table>
+        <p style="padding-top: 20px;">{{ form.submit() }}</p>
+      </form>
+  </div>
+  <div><p><strong>Межостановочные корреспонденции на маршруте {{ rnd_show }} (с учетом направления движения):</strong></p>
+  <div><img src="{{ url_for('static', filename=img_path) }}" width="1200"/></div>
+  </div>
+  {% if histo_renew_available %}
+  <div><img src="{{ histo_renew_path }}"></div>
+  {% else %}
+  <div class="flash">Для выбранного варианта маршрута отсутствуют данные о провозной способности, поэтому коэффициент наполнения перегонов не рассчитан.</div>
+  {% endif %}
+  <div id="view_big_table">
+    <p><strong>Загрузка межостановочных перегонов (пассажиры в салоне) {{ rnd_show }} по часам и за полный день (с учетом направления движения):</strong></p>
+      {{ load_string | safe }}
+  <table style="padding-top: 5px;">
+      <tr>
+        <td style="text-align:left">Табличные данные о статической загрузки перегонов:</td>
+        <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='routes_static', proj_name=title) }}" class="tuplink">скачать</a></td>
+      </tr>
+      <tr>
+        <td style="text-align:left">Табличные данные о потоке на перегонах:</td>
+        <td style="text-align:right"><a href="{{ url_for('download', proj_type='eff', f_prefix='route_load', proj_name=title) }}" class="tuplink">скачать</a></td>
+      </tr>
+  </table>
+  </div>
+{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='eff', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

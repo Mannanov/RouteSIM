@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %} {{ title }} {% endblock %}</title>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% endblock %}
+  </head>
+  <body>
+      <div class="main_label"><a href="{{ url_for('landing') }}" style="font-weight: bold; color: white; text-decoration: none;">RouteSIM</a></div>
+      <div class="topnav" style="padding-left:20px">
+            <a href="{{ url_for('geo_projects') }}">Проектирование</a>
+            <a href="{{ url_for('projects') }}">Уровень обслуживания</a>
+            <a href="{{ url_for('eff_projects') }}">Эффективность</a>
+            <a href="{{ url_for('demand.projects') }}">Восстановление матрицы</a>
+            <a href="{{ url_for('forecast.projects') }}">Прогноз спроса</a>
+            <a href="{{ url_for('profile') }}">Профиль</a>
+            <a href="{{ url_for('logout') }}" style="float:right">Выход</a>
+      </div>
+      <div class="wrapper">
+        <div class="content">
+        {% block content %}{% endblock %}
+        </div>
+      </div>
+    <div class="footer">
+    <hr>
+      <a href="https://github.com/apache/.github/blob/main/LICENSE" target="_blank" class="tuplink">Apache License 2.0</a> / @enggarinn
+    </div>
+    
+  </body>
+</html>

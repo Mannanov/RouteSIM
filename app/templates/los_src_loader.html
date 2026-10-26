@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ title }}: загрузка данных</h2>
+<div>
+Порядок загрузки исходных файлов:<br>
+	<ul>
+	  <li>Таблица описания маршрутов</li>
+	  <li>Матрица межостановочных расстояний</li>
+  	  <li>Справочник остановочных пунктов</li>
+  	  <li>Матрица пассажирских корреспонденций (опционально)</li>
+	</ul>
+</div>
+{% for msg in get_flashed_messages() %}
+<div class="flash">{{ msg }}</div>
+{% endfor %}
+{% if load_done == 0 %}
+	<div class="form_t1">
+		<form method="post" enctype="multipart/form-data">
+	    {{ form.hidden_tag() }}
+	    <p><label>Загрузка матрицы корреспонденций</label> {{ form.flow_load_field }}</p>
+	    <p><label>Выберите файл</label>
+	    {{ form.file }}
+		{{ form.submit() }}</p>
+		</form>
+	</div>
+{% endif %}
+{% if load_done == 1 %}
+	<div><a href="{{ url_for('geom_loader', proj_name=title) }}" class="mainlink">Продолжить</a></div>
+{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='los', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

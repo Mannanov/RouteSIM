@@ -1,0 +1,66 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+
+<style>
+#myBar {
+  width: 100%;
+  background-color: #ddd;
+}
+#mySize {
+  width: {{ occ_space }}%;
+  height: 20px;
+  background-color: #04AA6D;
+  text-align: right;
+  padding-right: 5px;
+  line-height: 20px;
+  color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Сведения об аккаунте</h2>
+<p style="line-height: 2;">Пользователь: {{ username }}<br></p>
+<!-- Тарифный план: {{ tarif_name }} -->
+Объем занятого дискового пространства: {{ cur_disk }} Мб
+<div id="myBar">
+  <div id="mySize">{{ occ_space }}%</div>
+</div>
+
+<div class="form_t1">
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <p style="font-weight: bold;">Изменить пароль</p>
+    <table>
+      <tr>
+        <td style="text-align: left;">{{ form.current_password.label }}</td>
+        <td>{{ form.current_password(autocomplete="current-password") }}</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">{{ form.new_password.label }}</td>
+        <td>{{ form.new_password(autocomplete="new-password") }}</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">{{ form.confirm_password.label }}</td>
+        <td>{{ form.confirm_password(autocomplete="new-password") }}</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="text-align: right; padding-top: 20px;">{{ form.submit() }}</td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+{% for field_errors in form.errors.values() %}
+  {% for error in field_errors %}
+    <div><div class="flash">{{ error }}</div></div>
+  {% endfor %}
+{% endfor %}
+
+{% for msg in get_flashed_messages() %}
+<div><div class="flash">{{ msg }}</div></div>
+{% endfor %}
+{% endblock %}

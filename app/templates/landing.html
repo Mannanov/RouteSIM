@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block title %} {{ title }} {% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Перейти к проектам:</h2>
+<div>
+  <table style="width: 100%; padding: 5px; margin-top: 10px;">
+    <tr><td width="20%"><a href="{{ url_for('geo_projects') }}">
+            <img src="{{ url_for('static', filename='img/desing.png') }}" alt="Проектирование сети" width="120" height="120">
+            </a>
+        </td>
+        <td width="20%"> 
+            <a href="{{ url_for('projects') }}">
+            <img src="{{ url_for('static', filename='img/los.png') }}" alt="Оценка уровня обслуживания" width="120" height="120">
+            </a>
+        </td>
+        <td width="20%">
+            <a href="{{ url_for('eff_projects') }}">
+            <img src="{{ url_for('static', filename='img/effect.png') }}" alt="Оценка эффективности работы" width="120" height="120">
+            </a>
+        </td>
+        <td width="20%">
+            <a href="{{ url_for('demand.projects') }}">
+            <img src="{{ url_for('static', filename='img/matrix.png') }}" alt="Восстановление матрицы корреспонденций (экспериментальная версия)" width="120" height="120">
+            </a>
+        </td>
+        <td width="20%">
+            <a href="{{ url_for('forecast.projects') }}">
+            <img src="{{ url_for('static', filename='img/forecast.png') }}" alt="Прогноз спроса (экспериментальная версия)" width="120" height="120">
+            </a>
+        </td>
+    </tr>
+    <tr>
+      <td>Проектирование сети</td>
+      <td>Оценка уровня обслуживания</td>
+      <td>Оценка эффективности работы</td>
+      <td>Восстановление матрицы корреспонденций <br>(экспериментальная версия)</td>
+      <td>Прогноз спроса новых территорий <br>(экспериментальная версия)</td>
+    </tr>
+  </table>
+</div>
+<h2>Последние изменения и обновления:</h2>
+<div><b>16.10.2026</b> &nbsp;&nbsp;Добавлен экспериментальный модуль "Прогноз спроса" для ознакомительных целей.</div>
+<div><b>22.08.2026</b> &nbsp;&nbsp;Добавлен экспериментальный модуль "Восстановление матрицы корреспонденций" для ознакомительных целей.</div>
+<div><b>26.03.2024</b> &nbsp;&nbsp;Модуль "Проектирование сети" дополнен функцией генерации транспортных районов на основе диаграммы Вороного.</div>
+<div><b>07.03.2024</b> &nbsp;&nbsp;Завершено тестирование модуля "Проектирование сети". Функционал модуля внесен в релизную верcию RouteSIM.</div>
+{% endblock %}

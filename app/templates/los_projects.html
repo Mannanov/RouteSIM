@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block title %} {{ title }} {% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проекты оценки уровня обслуживания</h2>
+<!-- <p>Перечень проектов:</p> -->
+{{ proj_data }}
+{% if not_filled == 1 %}
+<div id="projects_table">
+  <table class="table_t1" style="width:100%;">
+    <tr>
+      {% for col in headers %}
+      <th>{{ col }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr>
+      {% for col in row %}
+        {% if loop.index == 1 %}
+          <td><a href="{{ url_for('src_loader', proj_name=col) }}" class="mainlink">{{ col }}</a></td>
+        {% else %}
+          <td>{{ col }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+<div class="form_t1">
+  <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p style="font-weight: bold;">Создать новый проект</p>
+    Код проекта: {{ form.proj_name }}
+    Краткое описание: {{ form.proj_descr }}
+    {{ form.submit() }}
+  </form>
+</div>
+{% for msg in get_flashed_messages() %}
+<div><div class="flash">{{ msg }}</div></div>
+{% endfor %}
+{% endblock %}
+
+

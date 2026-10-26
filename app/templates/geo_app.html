@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %} {{ title }} {% endblock %}</title>
+  <style>
+    .map {
+      width: 100%;
+      height: 400px;
+    }
+  </style>
+  <script type="module" crossorigin src="{{ url_for('static', filename='geo/index-cd58685c.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='geo/index-2122cc81.css') }}">
+</head>
+
+<body>
+  <div id="map" class="map">
+    <div id="info_tooltip" style="text-align: left;"></div>
+  </div>
+  <div id="toolbar">
+    <button id="open_layers_btn">
+     <img src="{{ url_for('static', filename='img/layers.png') }}" alt="Слои" width="22" height="22" class="toolbar_buttons"/>
+    </button>
+    <button id="measure_btn"><img src="{{ url_for('static', filename='img/ruler.png') }}" alt="Измерения" width="22" height="22" class="toolbar_buttons"></button>
+    <div id="measure_select">
+      <form>
+        <select id="measure_type">
+          <option value="LineString">Длина</option>
+          <option value="Polygon">Площадь</option>
+        </select>
+      </form>
+    </div>
+  </div>
+  <div id="layers_control"></div>
+  <div id="object_candidates" class="object_candidates" aria-live="polite">
+    <div class="object_candidates_header">
+      <span>Выберите объект</span>
+      <button id="close_object_candidates" type="button" aria-label="Закрыть список объектов">×</button>
+    </div>
+    <div id="object_candidates_list"></div>
+  </div>
+  <div id="object_info" class="detailed">
+    <button id="modify_obj">Изменить</button>
+    <button id="save_modify" disabled>Сохранить</button>
+    <button id="delete_modify" disabled>Удалить</button>
+    <button id="cancel_modify" disabled>Отмена</button>
+    <button id="modify_snap_mode" disabled>Прилипание</button></br>
+    <div id="object_info_data"></div>
+  </div>
+  <!-- <div id="layer_info_table"></div> -->
+  <div id="create_obj" class="detailed">
+    <button id="save_created" disabled>Сохранить</button>
+    <button id="cancel_create" disabled>Отмена</button>
+    <button id="create_snap_mode" disabled>Прилипание</button>
+    <div id="object_create"> </div>
+  </div>
+  <div id="layer_data_table">
+    <div style="width: 825px; display: flex; align-items: center; gap: 5px; margin-top: 5px; margin-left: 5px;">
+      <div id="filter-selector" style="height: 18px;">
+        <select id="filter-field" style="height: 18px;"><option></option></select>
+      </div>
+      <select id="filter-type">
+        <option value="=">=</option>
+        <option value="!=">!=</option>
+        <option value="like">Похоже</option>
+      </select>
+      <input id="filter-value" type="text" placeholder="введите значение">
+      <button id="filter-clear">Очистить фильтр</button>
+      <button id="fit-obj" disabled>Центрировать</button>
+      <button id="modify_feat" disabled>Выбрать</button>
+      <button id="close-table">Закрыть</button>
+    </div>
+    <div id="data_table_holder" style="margin-top: 5px;"></div>
+  </div>
+  
+  <div id="user_info" class="info_div">
+    <div id="content_info"></div>
+    <div style="bottom: 0%; border: 3px solid #2bac6e; position: absolute; bottom: 5px; right: 5px;"><button id="close_info">Ok</button></div>
+  </div>
+  <div id="loader_div"><div id="loader"></div></div>
+</body>
+</html>

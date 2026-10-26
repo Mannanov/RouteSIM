@@ -1,0 +1,280 @@
+{% extends 'layout.html' %}
+
+{% block title %}Результаты – {{ title }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+{% macro grouped_integer(value) -%}
+  {{ '{:,.0f}'.format(value|float).replace(',', ' ') }}
+{%- endmacro %}
+
+{% macro localized_status(value) -%}
+  {{ 'требуется проверка исходных данных' if value == 'WARNING' else value }}
+{%- endmacro %}
+
+{% macro grouped_decimal(value) -%}
+  {{ '{:,.1f}'.format(value|float).replace(',', ' ').replace('.', ',') }}
+{%- endmacro %}
+
+<h2>Проект {{ title }}: результаты восстановления спроса</h2>
+
+<style>
+  .demand-info-table th,
+  .demand-info-table td {
+    text-align: left;
+  }
+</style>
+
+<table class="table_t1 demand-info-table" style="width:100%;">
+  <tr>
+    <th>Показатель</th>
+    <th>Значение</th>
+  </tr>
+  <tr>
+    <td>Период расчета</td>
+    <td>{{ 'Сутки' if stats['calculation_period'] == 'day' else stats['calculation_period'] ~ ':00' }}</td>
+  </tr>
+  <tr>
+    <td>Все перемещения мобильной матрицы</td>
+    <td>{{ grouped_integer(stats['mobile_demand']) }}</td>
+  </tr>
+  <tr>
+    <td>Целевой объем корреспонденций</td>
+    <td>{{ grouped_integer(stats['requested_pt_demand']) }}</td>
+  </tr>
+  <tr>
+    <td>Распределено корреспонденций между остановками</td>
+    <td>{{ grouped_integer(stats['served_pt_demand']) }}</td>
+  </tr>
+  <tr>
+    <td>Не обслужено корреспонденций между остановками</td>
+    <td>{{ grouped_integer(stats['unserved_pt_demand']) }}</td>
+  </tr>
+  {% if project['normalize_target_volume'] %}
+  <tr>
+    <td>Исключено до нормирования</td>
+    <td>{{ grouped_integer(stats.get('excluded_pt_demand', 0)) }}</td>
+  </tr>
+  <tr>
+    <td>Исключенные районные пары и часы до нормирования</td>
+    <td>{{ grouped_integer(stats.get('excluded_od_periods', 0)) }}</td>
+  </tr>
+  <tr>
+    <td>Доля исключенного объема OD-пар</td>
+    <td>{{ ((stats.get('excluded_od_share', 0)) * 100)|round(1) }}%</td>
+  </tr>
+  {% endif %}
+  <tr>
+    <td>Доля распределенного спроса</td>
+    <td>{{ stats['served_share']|round(1) }}%</td>
+  </tr>
+  <tr>
+    <td>Необслуженные районные пары и часы</td>
+    <td>{{ grouped_integer(stats['unserved_od_periods']) }}</td>
+  </tr>
+  <tr>
+    <td>Районы без доступных остановок</td>
+    <td>{{ grouped_integer(stats['districts_without_stops']) }}</td>
+  </tr>
+  <tr>
+    <td>Ошибки контроля районных и почасовых сумм</td>
+    <td>{{ grouped_integer(stats['control_errors']) }}</td>
+  </tr>
+</table>
+
+<p><strong>Расчетные параметры:</strong><br>
+  <i>
+    Временной профиль –
+    {{ 'мобильная матрица' if project['demand_profile_mode'] == 'mobile_only' else 'мобильная матрица и провозная способность' }}<br>
+    Базовая доля поездок на ОТ –
+    {{ ((project['pt_share'] or 0.3) * 100)|round(0)|int }}%<br>
+    {% if project['pt_share_intrazonal'] is defined and project['pt_share_intrazonal'] is not none %}
+      Доля поездок на ОТ внутри района –
+      {{ (project['pt_share_intrazonal'] * 100)|round(0)|int }}%<br>
+    {% endif %}
+    {% if project['calibration_mode'] == 'total_boardings' %}
+      Способ задания объема — общее количество посадок<br>
+      Количество посадок за период –
+      {{ grouped_integer(project['total_boardings_period']) }}<br>
+      Коэффициент пересадочности –
+      {{ project['transfer_factor']|round(2) }}<br>
+    {% elif project['calibration_mode'] == 'route_boardings' %}
+      Способ калибровки – поездки на маршрутах в расчетном периоде<br>
+      {% if project['total_boardings_period'] %}
+        Общее количество посадок за период –
+        {{ grouped_integer(project['total_boardings_period']) }}<br>
+      {% endif %}
+      Коэффициент пересадочности –
+      {{ project['transfer_factor']|round(2) }}<br>
+    {% else %}
+      Способ задания объема – доли поездок на ОТ по районам<br>
+    {% endif %}
+    Радиус буфера пешей доступности –
+    {{ project['access_radius_km'] }} км<br>
+    Минимальная доля пересечения буфера с районом –
+    {{ ((project['min_overlap_share'] or 0.15) * 100)|round(0)|int }}%<br>
+    Нормирование по целевому объёму поездок –
+    {{ 'да' if project['normalize_target_volume'] else 'нет' }}
+  </i>
+</p>
+
+<p><strong>Оценка качества расчета:</strong><br>
+  <i>
+    Целевой объём пассажирских поездок –
+    {{ grouped_integer(project['target_period_trip_volume']) }}<br>
+    Эффективная доля поездок на ОТ –
+    {{ ((project['effective_pt_share'] or 0) * 100)|round(1) }}%
+    ({{ localized_status(project['effective_pt_share_status']) }})<br>
+    {% if project['calibration_mode'] == 'route_boardings' %}
+      Доля поездок, атрибутированных к направлениям –
+      {{ ((stats.get('attributed_trip_share', 0)) * 100)|round(1) }}%<br>
+      Статус маршрутной калибровки –
+      ({{ localized_status(stats.get('route_calibration_status', '–')) }})<br>
+      {% set baseline_wmape = stats.get('route_baseline_wmape') %}
+      {% set final_wmape = stats.get('route_wmape') %}
+      {% set wmape_improvement = stats.get('route_wmape_improvement') %}
+      {% set route_bias = stats.get('route_bias') %}
+      {% if baseline_wmape is not none and baseline_wmape == baseline_wmape %}
+          WMAPE до калибровки =
+          {{ (baseline_wmape * 100)|round(1) }}%<br>
+      {% else %}
+          WMAPE до калибровки = не рассчитывается<br>
+      {% endif %}
+      {% if final_wmape is not none and final_wmape == final_wmape %}
+        WMAPE после калибровки =
+        {{ (final_wmape * 100)|round(1) }}%<br>
+      {% else %}
+        WMAPE после калибровки = не рассчитывается<br>
+      {% endif %}
+      {% if wmape_improvement is not none
+            and wmape_improvement == wmape_improvement %}
+          Изменение WMAPE =
+          {{ (wmape_improvement * 100)|round(1) }} п.п.<br>
+      {% endif %}
+      {% if route_bias is not none and route_bias == route_bias %}
+        Bias после калибровки =
+        {{ (route_bias * 100)|round(1) }}%<br>
+      {% else %}
+        Bias после калибровки = не рассчитывается<br>
+      {% endif %}
+    {% endif %}
+  </i>
+</p>
+<p style="margin-top:20px;">
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='demand_matrix',
+      proj_name=title
+  ) }}" class="mainlink">Скачать итоговую матрицу корреспонденций</a>
+</p>
+{% if demand_diagnostic_available %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix=demand_diagnostic_prefix,
+      proj_name=title
+  ) }}" class="mainlink">Скачать {{ 'исключенный спрос до нормирования' if project['normalize_target_volume'] else 'необслуженный спрос' }}</a>
+</p>
+{% endif %}
+{% if control_available %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='demand_control',
+      proj_name=title
+  ) }}" class="mainlink">Скачать контроль районных и почасовых сумм</a>
+</p>
+{% endif %}
+{% if supply_available %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='demand_supply',
+      proj_name=title
+  ) }}" class="mainlink">Скачать диагностику спроса и предложения</a>
+</p>
+{% endif %}
+{% if route_stops_matrix_available %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='route_stops_matrix',
+      proj_name=title
+  ) }}" class="mainlink">Скачать матрицу межостановочных поездок</a>
+</p>
+{% endif %}
+{% if route_calibration_available %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='route_calibration',
+      proj_name=title
+  ) }}" class="mainlink">Скачать результаты маршрутной калибровки</a>
+</p>
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='route_calibration_stats',
+      proj_name=title
+  ) }}" class="mainlink">Скачать сводку маршрутной калибровки</a>
+</p>
+{% endif %}
+<p>
+  <a href="{{ url_for(
+      'download',
+      proj_type='demand',
+      f_prefix='stop_district_access',
+      proj_name=title
+  ) }}" class="mainlink">Скачать присвоение остановок транспортным районам</a>
+</p>
+
+{% if baseline_stats %}
+<section id="demand-baseline">
+  <h3>Базовая оценка</h3>
+  <table class="table_t1 demand-info-table" style="width:100%;">
+    <tr><th>Показатель</th><th>Значение</th></tr>
+    <tr>
+      <td>Заданный спрос на ОТ</td>
+      <td>{{ grouped_decimal(baseline_stats['requested_pt_demand']) }}</td>
+    </tr>
+    <tr>
+      <td>Распределено между остановками</td>
+      <td>{{ grouped_decimal(baseline_stats['served_pt_demand']) }}</td>
+    </tr>
+    <tr>
+      <td>Необслуженный спрос</td>
+      <td>{{ grouped_decimal(baseline_stats['unserved_pt_demand']) }}</td>
+    </tr>
+    <tr>
+      <td>Доля распределенного спроса</td>
+      <td>{{ grouped_decimal(baseline_stats['served_share']) }}%</td>
+    </tr>
+  </table>
+  {% if baseline_matrix_available %}
+  <p>
+    <a href="{{ url_for('demand.baseline_download', proj_name=title, file_kind='matrix') }}"
+       class="mainlink">Скачать итоговую матрицу базовой оценки</a>
+  </p>
+  {% endif %}
+  {% if baseline_diagnostic_available %}
+  <p>
+    <a href="{{ url_for('demand.baseline_download', proj_name=title, file_kind='diagnostic') }}"
+       class="mainlink">Скачать диагностику baseline</a>
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
+<div style="display:flex; justify-content:flex-end;">
+  <a href="{{ url_for('del_proj', proj_type='demand', proj_name=title) }}"
+     class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

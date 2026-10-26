@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+
+{% block title %}Прогноз спроса — {{ project.proj_name }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ project.proj_name }}: подготовка расчета прогноза спроса</h2>
+
+<div class="form_t1">
+  <h3>Выбор параметров для расчета:</h3>
+  <form method="post" id="forecast_calculation_form">
+    {{ form.hidden_tag() }}
+    <table>
+      {% for field in form if field.type not in ['CSRFTokenField', 'SubmitField'] %}
+      <tr>
+        <td style="text-align: left">{{ field.label }}:</td>
+        <td style="text-align: left">{{ field() }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p style="padding-top: 20px;">{{ form.submit() }}</p>
+  </form>
+</div>
+
+<div id="run_info" aria-live="polite"><i>Примечание: Расчет проекта может занять продолжительное время.</i></div>
+
+{% for field in form %}
+  {% for error in field.errors %}
+  <div><div class="flash" role="alert">{{ field.label.text }}: {{ error }}</div></div>
+  {% endfor %}
+{% endfor %}
+{% for message in get_flashed_messages() %}
+<div><div class="flash" role="alert">{{ message }}</div></div>
+{% endfor %}
+
+<script>
+const calculationForm = document.getElementById("forecast_calculation_form");
+const calculationButton = document.getElementById("{{ form.submit.id }}");
+calculationForm.addEventListener("submit", function (event) {
+  if (calculationButton.disabled) {
+    event.preventDefault();
+    return;
+  }
+  calculationButton.disabled = true;
+  calculationButton.style.cursor = "not-allowed";
+  document.getElementById("run_info").textContent =
+    "Производится расчет. Дождитесь завершения расчета проекта.";
+});
+</script>
+{% endblock %}

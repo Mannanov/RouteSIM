@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<style>
+  .forecast-result-block { overflow-wrap: anywhere; }
+</style>
+{% endblock %}
+{% block content %}
+{{ super() }}
+<h2>Проект {{ project.proj_name }}: результат прогноза спроса</h2>
+
+<div id="forecast-general" class="forecast-result-block">
+  <h3>Общие сведения и краткие итоги:</h3>
+  {% for message in get_flashed_messages() %}
+  <p class="flash" role="alert">{{ message }}</p>
+  {% endfor %}
+  Статус расчета: <strong>{{ presentation.status }}</strong>.<br>
+  {% if summary.error_message %}<p role="alert">{{ summary.error_message|truncate(300, true) }}</p>{% endif %}
+  {% if 'T_final' in summary.artifacts %}
+  Районов в матрице: {{ overview.districts if overview.districts is not none else 'Нет данных' }}.<br>
+  Поездок в рассчитанных часах: {{ '%.0f'|format(overview.total_trips) if overview.total_trips is not none else 'Нет данных' }}.
+  Рассчитано часов: {{ overview.successful_hours if overview.successful_hours is not none else 'Нет данных' }} из {{ overview.expected_hours if overview.expected_hours is not none else 'неизвестного числа' }}.<br>
+  Доля внутрирайонных поездок: {% if summary.config and summary.config.include_intrazonal is sameas false %}не учитываются{% elif overview.intrazonal_share is not none %}{{ '%.0f'|format(overview.intrazonal_share * 100) }} %{% else %}Нет данных{% endif %}.<br>
+  {% if presentation.period == 'Сутки' %}
+  {{ 'Суточная матрица готова.' if summary.daily_od_complete else 'Суточная матрица неполная.' }}<br>
+  {% endif %}
+  Объемы относятся к успешно собранным часам.<br>
+  {% else %}
+  Итоговая матрица недоступна.<br>
+  {% endif %}
+</div>
+
+<div id="forecast-parameters" class="forecast-result-block">
+  <h3>Расчетные параметры:</h3>
+  Период расчета: {{ presentation.period }}.<br>
+  Режим: {{ presentation.mode }}.<br>
+  {% if summary.config %}
+  Связи новых районов: {% if summary.config.new_connection_mode == 'analogues_only' %}Только подтверждённые аналогами{% elif summary.config.new_connection_mode == 'all' %}Все связи{% else %}Не задавались отдельным параметром в этой версии{% endif %}.<br>
+  Внутрирайонные поездки: {% if summary.config.include_intrazonal is defined and summary.config.include_intrazonal is not none %}{{ 'учитываются' if summary.config.include_intrazonal else 'не учитываются' }}{% else %}Нет данных{% endif %}.<br>
+  Радиус аналогов: {% if summary.config.los_neighbor_radius_km is defined and summary.config.los_neighbor_radius_km is not none %}{{ summary.config.los_neighbor_radius_km }} км{% else %}Нет данных{% endif %}.<br>
+  Резервный процентиль LOS: {{ summary.config.los_fallback_percentile if summary.config.los_fallback_percentile is defined and summary.config.los_fallback_percentile is not none else 'Нет данных' }}.<br>
+  Число фолдов: {{ summary.config.validation_folds if summary.config.validation_folds is defined and summary.config.validation_folds is not none else 'Нет данных' }}.<br>
+  {% endif %}
+</div>
+
+<div id="forecast-diagnostics" class="forecast-result-block">
+  <h3>Диагностика:</h3>
+  <ul>
+    {% for label, value in presentation.diagnostics %}
+    <li><strong>{{ label }}</strong>: {{ value }}.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div id="forecast-downloads" class="forecast-result-block">
+  <h3>Файлы для скачивания:</h3>
+  {% if downloads %}
+  <ul>
+    {% for name, label in downloads %}
+    <li><a href="{{ url_for('forecast.download', proj_name=project.proj_name, artifact=name) }}" class="{{ 'mainlink' if name in ['T_final', 'T_final_day'] else 'tuplink' }}">{{ label }}</a></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p>Файлы текущего запуска недоступны.</p>{% endif %}
+</div>
+<div style="display:flex; justify-content:flex-end;">
+  <a href="{{ url_for('forecast.delete_project', proj_name=project.proj_name) }}"
+     class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

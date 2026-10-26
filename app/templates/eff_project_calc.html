@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ title }}: выбор параметров для расчета </h2>
+{% if calc_done == 0 %}
+<div>
+  <div class="form_t1">
+    <h3>Учитывать направления движения маршрутов:</h3>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <table>
+      <tr><td style="text-align: left">Учитывать направления движения маршрутов при расчете дублирования:</td><td style="text-align: left">{{ form.calc_double_rnd_field }}</td></tr>
+      <tr><td style="text-align: left">Учитывать все комбинации маршрутных связей при расчете дублирования (декартово произведение, продолжительное время расчета):</td><td style="text-align: left">{{ form.hard_calc_doubl_field }}</td></tr>
+      </table>
+      <p style="padding-top: 20px;">{{ form.submit() }}</p>
+    </form>
+  </div>
+<div id="run_info"><i>Примечание: Расчет проекта может занять продолжительное время.</i></div>
+{% endif %}
+
+<script>
+const button = document.getElementById("calc_butt");
+button.addEventListener("click", hide_button);
+function hide_button() {
+  setTimeout(() => {  button.disabled = true; }, 300);
+  button.style.cursor = "not-allowed";
+  document.getElementById("run_info").innerHTML = "Производится расчет. Вы можете закрыть страницу и вернуться к результатам позднее или дождаться завершения расчета проекта.";
+}
+</script>
+
+
+{% with messages = get_flashed_messages() %}
+   {% if messages %}
+      {% for msg in messages %}
+        <div><div class="flash">{{ msg }}</div></div>
+      {% endfor %}
+   {% endif %}
+{% endwith %}
+
+{% if calc_done == 1 %}
+  <div><a href="{{ url_for('eff_project_info', proj_name=title) }}" class="mainlink">Продолжить</a></div>
+{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='eff', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+</div>
+{% endblock %}

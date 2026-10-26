@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<style>
+#field_description {
+  width: 500px;
+}
+.inp_fields {
+  padding-top: 10px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ title }}: загрузка данных</h2>
+<div><strong>Порядок загрузки основных слоёв:</strong><br>
+	<ul>
+	  <li>Остановочные пункты</li>
+	  <li>Маршруты (отдельно по направлениям)</li>
+  	  <li>Транспортные районы</li>
+	</ul>
+<i>Требования: файлы в текстовом формате "csv", кодировка UTF-8</i>
+</div>
+{% if load_done == 0 %}
+	<div class="form_t1">
+		<form method="post" enctype="multipart/form-data">
+	    {{ form.hidden_tag() }}
+	    <p><label>Новый слой</label> {{ form.new_layer }}</p>
+	    <p><label>Выберите файл</label>
+	    {{ form.file }}
+		{{ form.submit() }}</p>
+		</form>
+	</div>
+{% for msg in get_flashed_messages() %}
+<div><div class="flash">{{ msg }}</div></div>
+{% endfor %}
+{% endif %}
+{% if load_done == 1 %}
+	<div><a href="{{ url_for('geo_src_loader_add', proj_name=title) }}" class="mainlink">Продолжить</a></div>
+{% endif %}
+<div style="margin-top: 10px;">
+<i style="line-height: 1.8">Загружаемые файлы в текстовом формате "csv", кодировка UTF-8, проекция EPSG:4326</i><br>
+<i style="line-height: 1.8">Обязательно наличие полей: "id", "name" (опционально для слоя райнов)</i>
+</div>
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='geo', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: routesim-web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    working_dir: /app
+    environment:
+      SQLITE_PATH: data/routesim.db
+    volumes:
+      - routesim_sqlite:/app/data
+      - routesim_logs:/app/log
+      - routesim_userdata:/app/static/userdata
+
+volumes:
+  routesim_sqlite:
+  routesim_logs:
+  routesim_userdata:

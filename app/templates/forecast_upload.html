@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+
+{% block title %}Загрузка данных — {{ project.proj_name }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проект {{ project.proj_name }}: загрузка исходных файлов</h2>
+
+<div>
+  Порядок загрузки исходных файлов:
+  <ol>
+    {% for label in files %}
+    <li{% if loop.index0 == project.status_src %} aria-current="step"{% endif %}>
+      {% if loop.index0 == project.status_src %}<strong>{{ label }}</strong>{% else %}{{ label }}{% endif %}
+      {% if loop.index0 < project.status_src %} - <i>загружен</i>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+
+{% if not ready or coordinate_step %}
+<div class="form_t1">
+  <form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {% if coordinate_step %}
+    <p><strong>{{ file_label }}</strong></p>
+    <p>Для расчёта доступности нужны столбцы id_stop и wkt с координатами остановок. Прежние результаты проекта сохраняются.</p>
+    {% else %}
+    <p><strong>Текущий файл ({{ project.status_src + 1 }} из {{ files|length }} обязательных):</strong> {{ file_label }}</p>
+    {% endif %}
+    <p><label for="{{ form.file.id }}">Выберите файл</label>
+      {{ form.file }}
+      {{ form.submit() }}
+    </p>
+    {% for field in form %}
+      {% for error in field.errors %}
+      <p class="flash" role="alert">{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+  </form>
+</div>
+{% endif %}
+
+{% if ready and not coordinate_step %}
+<div style="margin-top:20px;"><a href="{{ url_for('forecast.calculate', proj_name=project.proj_name) }}" class="mainlink">Продолжить</a></div>
+{% if project.run_id %}
+<p><a href="{{ url_for('forecast.result', proj_name=project.proj_name) }}" class="tuplink">Результат последнего запуска</a></p>
+{% endif %}
+{% endif %}
+
+{% for message in get_flashed_messages() %}
+<div><div class="flash" role="alert">{{ message }}</div></div>
+{% endfor %}
+{% endblock %}

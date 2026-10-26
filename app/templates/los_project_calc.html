@@ -1,0 +1,120 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<style>
+  span.small {
+  font-size: smaller;
+}
+.loader {
+  align-content: center;
+  border: 3px solid #d9d9d9;
+  border-radius: 100%;
+  border-top: 3px solid #00e64d;
+  width: 20px;
+  height: 20px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+}
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+
+<h2>Проектный вариант {{ title }}: подготовка расчета показателей качества обслуживания</h2>
+{% if calc_done == 0 %}
+  <div class="form_t1">
+    <h3>Выбор параметров для расчета:</h3>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <table>
+      <tr><td style="text-align: left">Предпочитаемая дистанция пешего подхода к ОП (км):</td><td style="text-align: left">{{ form.dist_trash_field }}</td></tr>
+      <tr><td style="text-align: left">Нормативная дистанция пешего подхода к ОП (км):</td><td style="text-align: left">{{ form.max_dist_walk_field }}</td></tr>
+      <tr><td style="text-align: left">Средняя скорость пешехода (км/ч):</td><td style="text-align: left">{{ form.ped_speed_field }}</td></tr>
+      <tr><td style="text-align: left">Порог отбора лучших вариантов поездки:</td><td style="text-align: left">{{ form.best_tresh_field }}</td></tr>
+      <tr><td style="text-align: left">Порог смены пользовательского поведения "по запросу/по расписанию" (минут):</td>
+        <td style="text-align: left">{{ form.interval_tresh_field }}</td></tr>
+      <tr><td style="text-align: left">Максимальное количество пересадок:</td><td style="text-align: left">{{ form.deep_limit_field }}</td></tr>
+      <tr><td style="text-align: left">Штраф за совершение пересадки (минут):</td><td style="text-align: left">{{ form.change_penalty_field }}</td></tr>
+      <tr><td style="text-align: left">Функция зависимости привлекательности варианта пути от качества:</td><td style="text-align: left">{{ form.use_reducer }}</td></tr>
+      <tr><td style="text-align: left">Степень воздействия для экспоненциальной функции:<br><span class="small">(чем выше значение, тем сильнее снижение привлекательности для худших связей)</span></td><td style="text-align: left">{{ form.reducer_grade_field }}</td></tr>
+    {% if flow_data == True %}
+      <tr><td style="text-align: left">Расчет для полных суток (на основе среднесуточного расписания):</td><td style="text-align: left">{{ form.rnd_type_field }}</td></tr>
+      <tr><td style="text-align: left">Расчет для часового периода (пиковые или внепиковые часы):</td><td style="text-align: left">{{ form.calc_period_field }}</td></tr>
+    {% endif %}
+      </table>
+      <p style="padding-top: 20px;">{{ form.submit() }}</p>
+
+<!--       {% if calc_done == 1 %}
+        <center><div class="loader"></div></center>
+      {% endif %} -->
+    </form>  
+  </div>
+  <div id="run_info"><i>Примечание: Расчет проекта может занять продолжительное время.</i></div>
+{% endif %}
+
+<script>
+const button = document.getElementById("calc_butt");
+button.addEventListener("click", hide_button);
+function hide_button() {
+  setTimeout(() => {  button.disabled = true; }, 300);
+  button.style.cursor = "not-allowed";
+  document.getElementById("run_info").innerHTML = "<i>Производится расчет. Вы можете закрыть страницу и вернуться к результатам позднее или дождаться завершения расчета проекта.</i>";
+}
+</script>
+
+{% with messages = get_flashed_messages() %}
+   {% if messages %}
+      {% for msg in messages %}
+        <div><div class="flash">{{ msg }}</div></div>
+      {% endfor %}
+   {% endif %}
+{% endwith %}
+
+{% if flow_data == True %}
+<script>
+const input_rtf = document.getElementById("rnd_type_field");
+const input_cpf = document.getElementById("calc_period_field");
+document.getElementById("calc_period_field").disabled = true;
+input_rtf.addEventListener("change", turn_CPF);
+function turn_CPF() {
+    if (document.getElementById("rnd_type_field").value == "Нет") {
+      document.getElementById("calc_period_field").disabled = false;
+    } else {
+      document.getElementById("calc_period_field").disabled = true;
+    }
+  }
+</script>
+{% endif %}
+
+<script>
+const input_use_reducer = document.getElementById("use_reducer");
+const input_reducer_grade_field = document.getElementById("reducer_grade_field");
+input_reducer_grade_field.disabled = true;
+input_use_reducer.addEventListener("change", turn_RDC);
+function turn_RDC() {
+    if (document.getElementById("use_reducer").value == "Экспоненциальная") {
+      input_reducer_grade_field.disabled = false;
+    } else {
+      input_reducer_grade_field.disabled = true;
+    }
+  }
+</script>
+
+{% if calc_done == 1 %}
+<div><a href="{{ url_for('project_info', proj_name=title) }}" class="mainlink">Продолжить</a></div>
+{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='los', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}

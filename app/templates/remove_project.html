@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block title %} {{ title }} {% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Удаление проекта</h2>
+<div class="form_t1">
+<form method="post">
+    {{ form.hidden_tag() }}
+Подтвердите действие по удалению проекта: {{ title }}<span style="margin-left: 20px">{{ form.submit() }}
+</form>
+</div>
+{% endblock %}
+
+

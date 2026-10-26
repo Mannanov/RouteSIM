@@ -1,0 +1,187 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/coloris/coloris.min.css') }}">
+<style>
+#area_name {
+  width: 580px;
+  height: 28px;
+}
+.layer_label {
+  width: 150px;
+  display: inline-block
+}
+.download_file_label {
+  width: 550px;
+  display: inline-block
+}
+.layer_row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.layer_color_input {
+  width: 70px;
+  height: 24px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.layer_row .clr-field {
+  margin-right: 28px;
+}
+.layer_row .clr-field button {
+  right: -28px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 3px;
+  outline: none;
+  box-shadow: none;
+}
+.layer_row .clr-field button:focus,
+.layer_row .clr-field button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.layer_row .clr-field button::after {
+  box-shadow: none;
+}
+.layer_actions {
+  white-space: nowrap;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Проектный вариант {{ title }}</h2>
+<div style="line-height: 1.9"><strong>Загруженные слои ({{ table_data|length }}):</strong><br>
+  <div style="padding-left: 25px">
+    <form method="post">
+    {{ form_colors.hidden_tag() }}
+    {% for i in table_data %}
+      <div class="layer_row">
+      <input type="hidden" name="layer_name" value="{{ i }}">
+      <input type="text" name="layer_color" value="{{ table_data[i][2] }}" class="layer_color_input" data-coloris maxlength="7" pattern="#[0-9A-Fa-f]{6}" aria-label="Цвет слоя {{ table_data[i][0] }}">
+      <label class="layer_label">{{ table_data[i][0] }}</label>
+      <span class="layer_actions">
+      {% if table_data[i][1] == 1 %}
+          <a href="{{ url_for('download', proj_type='geo', f_prefix=i, proj_name=title, type_path='src') }}" class="tuplink" style="margin-right: 10px;">Скачать</a> 
+      {% else %}
+          <a href="" class="tuplink" style="margin-right: 10px; color: #cccccc;" title="Нет данных">Скачать</a>
+      {% endif %}
+          <a href="{{ url_for('del_layer', proj_type='geo', f_prefix=i, proj_name=title) }}" class="red_bottom">Удалить</a>
+      </span>
+       </div>
+    {% endfor %}
+    <div style="margin-top: 12px;">{{ form_colors.color_submit(class_='tu_bottom') }}</div>
+    </form>
+    <div style="margin-top: 20px;"><a href="{{ url_for('geo_project_calc', proj_name=title) }}" class="tu_bottom">Обновить</a></div> 
+  </div>
+</div>
+<script src="{{ url_for('static', filename='vendor/coloris/coloris.min.js') }}"></script>
+<script>
+Coloris({
+  el: '.layer_color_input',
+  format: 'hex',
+  alpha: false,
+  closeButton: true,
+  closeLabel: 'Выбрать',
+  swatches: ['#D33D3D', '#E58A2B', '#D9B72F', '#56A64B', '#2A9D8F', '#2D7DD2', '#7557C2', '#C34F9E']
+});
+</script>
+
+{% if show_geomap == 0 %}
+<div class="form_t1">
+    <form method="post">
+      {{ form_CG.hidden_tag() }}
+       <div style="padding-top: 10px;">{{ form_CG.area_name.label }}:<br>
+       {{ form_CG.area_name }} {{ form_CG.submit() }}</div>
+    </form>
+</div>
+<div style="margin-top: 10px;">
+<i style="line-height: 1.8">Наименование города вводится в формате: "город, район (если нужен), регион, страна". <br>Дополнительно указывается муниципальный район/городской округ, если поселение входит в его состав. Пример: "Нижневартовск,  Ханты-Мансийский автономный округ"</i><br>
+<!-- <i style="line-height: 1.8">При возникновении проблем с загрузкой графа обратитесь в техподдержку.</i> -->
+</div>
+<script>
+const load_grph_butt = document.getElementById("load_grph_butt");
+load_grph_butt.onclick = () => {
+  setTimeout(() => {  load_grph_butt.disabled = true; }, 50);
+  load_grph_butt.style.cursor = "not-allowed";
+}
+</script>
+{% endif %}
+
+{% with messages = get_flashed_messages() %}
+   {% if messages %}
+      {% for msg in messages %}
+        <div><div class="flash">{{ msg }}</div></div>
+      {% endfor %}
+   {% endif %}
+{% endwith %}
+
+{% if show_geomap == 1 %}
+  <div class="form_t1">
+    <p><strong>Выбор параметров для расчета кластеров, матрицы межостановочных расстояний, справочника ОП:</strong></p>
+    <form method="post">
+      {{ form_MC.hidden_tag() }}
+      <table>
+      <tr><td style="text-align: left">Порог расстояния между соседними ОП в группе (м):</td><td>{{ form_MC.csc_field }}</td></tr>
+      <tr><td style="text-align: left">Порог расстояния между соседними ОП в аналитическом кластере (м):</td><td>{{ form_MC.asc_field }}</td></tr>
+      <tr><td style="text-align: left">Порог расстояния между соседними ОП при генерации районов (м):</td><td>{{ form_MC.gen_districts_field }}</td></tr>
+      <tr><td colspan="2" style="text-align: left"><small>Цепочка соседних остановок образует один кластер. Его диаметр может превышать выбранный порог.</small></td></tr>
+      <tr><td style="text-align: left">Коэффициент непрямолинейности движения (для расчета матрицы расстояний между ОП):</td><td>{{ form_MC.k_walk_field }}</td></tr>
+      <tr><td style="text-align: left">Сгенерировать транспортные районы (диаграмма Вороного):</td><td>{{ form_MC.generate_distr }}</td></tr>
+      <tr><td style="text-align: left">Буфер для построения диаграммы Вороного, (м):</td><td>{{ form_MC.boundary_buffer_m }}</td></tr>
+      </table>
+      {% for error in form_MC.boundary_buffer_m.errors %}<div class="flash">{{ error }}</div>{% endfor %}
+      <p style="padding-top: 20px;">{{ form_MC.submit() }}</p>
+    </form>  
+  </div>
+<div>
+{% if show_district_boundary %}
+<div style="margin-top: 10px;"><label class="download_file_label">Граница, использованная для генерации районов</label>
+          <a href="{{ url_for('download', proj_type='geo', f_prefix='districts_boundary', proj_name=title) }}" class="tuplink" style="margin-right: 10px;">Скачать</a>
+</div>
+{% endif %}
+{% if show_link_matrix != 0 %}
+<div style="margin-top: 10px;"><label class="download_file_label">Справочник аналитических кластеров</label>
+          <a href="{{ url_for('download', proj_type='geo', f_prefix='geom_clusters', proj_name=title) }}" class="tuplink" style="margin-right: 10px;">Скачать</a>
+</div>
+{% endif %}
+{% if show_link_matrix != 0 %}
+<div style="margin-top: 10px;"><label class="download_file_label">Матрица межостановочных расстояний (на базе групп ОП встречных направлений)</label>
+          <a href="{{ url_for('download', proj_type='geo', f_prefix='matrix_dist_stops', proj_name=title) }}" class="tuplink" style="margin-right: 10px;">Скачать</a>
+</div>
+{% endif %}
+{% if show_ref_new_routes != 0 %}
+<div style="margin-top: 10px;"><label class="download_file_label">Справочник новых маршрутов</label>
+          <a href="{{ url_for('download', proj_type='geo', f_prefix='routes_elements', proj_name=title, type_path='src') }}" class="tuplink" style="margin-right: 10px;">Скачать</a>
+</div>
+{% endif %}
+
+{% if show_ref_stops != 0 %}
+<div style="margin-top: 10px;"><label class="download_file_label">Справочник принадлежности остановочных пунктов кластерам и тр. районам</label>
+          <a href="{{ url_for('download', proj_type='geo', f_prefix='ref_stops', proj_name=title) }}" class="tuplink" style="margin-right: 10px;">Скачать</a>
+</div>
+{% endif %}
+
+</div>
+<div style="text-align: left;"><a href="{{ url_for('geo_app', proj_name=title) }}" class="tuplink" target="_blank" style="font-size: 16px;">Открыть карту</a></div>
+<script>
+const make_cluster_butt = document.getElementById("make_cluster_butt");
+make_cluster_butt.onclick = () => {
+  setTimeout(() => {  make_cluster_butt.disabled = true; }, 50);
+  make_cluster_butt.style.cursor = "not-allowed";
+}
+</script>
+{% endif %}
+<div style="display: flex; justify-content: flex-end">
+<a href="{{ url_for('del_proj', proj_type='geo', proj_name=title) }}" class="red_bottom">Удалить проект</a>
+</div>
+{% endblock %}
