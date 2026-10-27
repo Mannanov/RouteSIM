@@ -62,7 +62,7 @@ venv\Scripts\Activate.ps1
 # Linux / macOS
 source venv/bin/activate
 ```
-2. Перейдите в папку с приложением и введите последовательно команды
+2. Перейдите в папку с приложением и запустите приложение
 ```bash
 cd app
 python wsgi.py
