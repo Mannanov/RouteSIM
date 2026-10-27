@@ -64,7 +64,7 @@ source venv/bin/activate
 ```
 2. Перейдите в папку с приложением и введите последовательно команды
 ```bash
-cd source
+cd app
 python wsgi.py
 ```
 3. Откройте приложение по ссылке [http://localhost:5000](http://localhost:5000).
